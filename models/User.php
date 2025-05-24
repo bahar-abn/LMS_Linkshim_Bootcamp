@@ -18,8 +18,14 @@ class User {
         $this->password = $data['password'] ?? '';
     }
 
+    public function validate(): bool {
+        if (empty($this->name)) return false;
+        if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) return false;
+        if (strlen($this->password) < 6) return false;
+        return true;
+    }
+
     public function save(): bool {
-        // Add validation check
         if (!$this->validate()) {
             error_log("Validation failed for user: " . print_r($this, true));
             return false;
@@ -27,8 +33,6 @@ class User {
 
         try {
             $hashedPassword = password_hash($this->password, PASSWORD_DEFAULT);
-            error_log("Attempting to save user with hashed password: " . $hashedPassword);
-
             $sql = "INSERT INTO users (name, email, password) VALUES (:name, :email, :password)";
             $stmt = Application::$app->db->pdo->prepare($sql);
 
@@ -37,17 +41,15 @@ class User {
                 ':email' => $this->email,
                 ':password' => $hashedPassword
             ];
-            error_log("Executing with params: " . print_r($params, true));
 
             $result = $stmt->execute($params);
 
             if (!$result) {
-                $error = Application::$app->db->pdo->errorInfo();
+                $error = $stmt->errorInfo();  // ✅ correct source of error
                 error_log("SQL Error: " . print_r($error, true));
-                throw new PDOException($error[2]);
+                return false;
             }
 
-            error_log("Save successful for: " . $this->email);
             return true;
 
         } catch (PDOException $e) {
@@ -63,21 +65,5 @@ class User {
         $stmt->execute([':email' => $email]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
-    }
-    public function validate(): bool
-    {
-        if (empty($this->name)) {
-            return false;
-        }
-
-        if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
-            return false;
-        }
-
-        if (strlen($this->password) < 6) {
-            return false;
-        }
-
-        return true;
     }
 }
