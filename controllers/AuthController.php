@@ -28,13 +28,14 @@ class AuthController {
         $user = User::findByEmail($data['email'] ?? '');
 
         if (!$user || !password_verify($data['password'], $user['password'])) {
-            $_SESSION['login_error'] = 'Invalid email or password.';
+            $_SESSION['login_error'] = 'ایمیل یا رمز عبور نادرست است.';
             Application::$app->response->redirect(BASE_URL . '/login');
             return;
         }
 
         $_SESSION['user'] = $user['email'];
-        Application::$app->response->redirect(BASE_URL . '/login');
+        $_SESSION['login_success'] = 'با موفقیت وارد شدید.';
+        Application::$app->response->redirect(BASE_URL . '/dashboard');
     }
 
     public function registerPost(Request $request) {
