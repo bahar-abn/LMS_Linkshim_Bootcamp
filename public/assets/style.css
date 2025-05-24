@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --primary: #0084ff;
+    --secondary: #6c757d;
+    --success: #3fc060;
+    --danger: #ff4d4f;
+    --warning: #ffcc00;
+    --light: #f5f6f8;
+    --dark: #1e1e1e;
+    --bg: #ffffff;
+    --text: #2d2d2d;
+    --radius: 12px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--light);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 2rem;
+}
+
+.btn {
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.btn-primary { background-color: var(--primary); color: #fff; }
+.btn-secondary { background-color: var(--secondary); color: #fff; }
+.btn:hover { opacity: 0.9; }
+
+input, textarea, select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    background: #fff;
+}
+
+.card, .course-card {
+    background: var(--bg);
+    border: 1px solid #e0e0e0;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+}
+.course-card:hover {
+    transform: translateY(-4px);
+}
+
+.sidebar {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+}
+
+.status-approved {
+    background: var(--success);
+    color: white;
+    padding: 0.3rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+}
+
+.status-pending {
+    background: var(--warning);
+    color: #000;
+    padding: 0.3rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+}
+
+.status-rejected {
+    background: var(--danger);
+    color: white;
+    padding: 0.3rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        margin-bottom: 2rem;
+    }
+}
