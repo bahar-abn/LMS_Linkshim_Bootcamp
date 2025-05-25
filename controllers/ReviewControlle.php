@@ -21,9 +21,9 @@ class ReviewController
         }
 
         if (Enrollment::enroll($userId, $courseId)) {
-            Session::setFlash('success', 'ثبت‌نام با موفقیت انجام شد.');
+            Session::setFlash('success', 'you have successfully enrolled in this course');
         } else {
-            Session::setFlash('error', 'شما قبلاً در این دوره ثبت‌نام کرده‌اید.');
+            Session::setFlash('error', 'you are not enrolled in this course');
         }
 
         $response->redirect("/courses/details?id=$courseId");
@@ -35,9 +35,9 @@ class ReviewController
         $data = $request->getBody();
 
         if (Review::addReview($userId, $data['course_id'], $data['rating'], $data['comment'])) {
-            Session::setFlash('success', 'نظر شما با موفقیت ثبت شد.');
+            Session::setFlash('success', 'your review has been saved');
         } else {
-            Session::setFlash('error', 'خطا در ثبت نظر.');
+            Session::setFlash('error', 'error while saving your review');
         }
 
         $response->redirect("/courses/details?id=" . $data['course_id']);
