@@ -3,16 +3,22 @@ namespace core;
 
 class Request {
     public function getPath(): string {
-        $path = $_SERVER['REQUEST_URI'] ?? '/';
-        $path = strtok($path, '?'); // Remove query string
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+        $scriptName = $_SERVER['SCRIPT_NAME'];
 
-        // Adjust base path (set to your project public folder route)
-        $basePath = '/lms-php-mvc/public';
-        if (str_starts_with($path, $basePath)) {
-            $path = substr($path, strlen($basePath));
+
+        $basePath = str_replace('/index.php', '', $scriptName);
+
+
+        $path = str_replace($basePath, '', $requestUri);
+
+
+        $position = strpos($path, '?');
+        if ($position !== false) {
+            $path = substr($path, 0, $position);
         }
 
-        return $path === '' ? '/' : $path;
+        return rtrim($path, '/') ?: '/';
     }
 
     public function getMethod(): string {
@@ -36,4 +42,5 @@ class Request {
 
         return $body;
     }
+
 }

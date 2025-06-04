@@ -27,7 +27,8 @@ class Router {
 
         if (!$callback) {
             $this->response->setStatusCode(404);
-            return "Not Found";
+            require_once Application::$ROOT_DIR . '/views/_errors/404.php';
+            return;
         }
 
         if (is_array($callback)) {

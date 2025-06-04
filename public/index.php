@@ -1,6 +1,6 @@
 <html>
 <head>
-    <link href="../src/input.css" rel="stylesheet">
+    <link href="../src/output.css" rel="stylesheet">
 </head>
 </html>
 <?php
@@ -18,9 +18,6 @@ $app->router->post('/login', [AuthController::class, 'loginPost']);
 $app->router->get('/register', [AuthController::class, 'register']);
 $app->router->post('/register', [AuthController::class, 'registerPost']);
 $app->router->get('/logout', [AuthController::class, 'logout']);
-
-$app->router->get('/dashboard', function () {
-    echo "Welcome to the dashboard!";
-});
+$app->router->get('/dashboard', [AuthController::class, 'dashboard']);
 
 $app->run();

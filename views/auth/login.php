@@ -5,7 +5,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!defined('BASE_URL')) {
-    define('BASE_URL', '/lms-php-mvc/public');
+
+    define('BASE_URL', '/projects/bootcamp_course_site/public');
 }
 
 $error = $_SESSION['login_error'] ?? null;
@@ -17,7 +18,6 @@ unset($_SESSION['login_error']);
 <head>
     <meta charset="UTF-8" />
     <title>Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 <div class="w-full max-w-md bg-white p-8 rounded shadow">

@@ -1,9 +1,7 @@
 /vendor/
-composer.json
 LICENSE
 README.md
 /src/
 .idea
 node_modules
-package-lock.json
 package.jsons

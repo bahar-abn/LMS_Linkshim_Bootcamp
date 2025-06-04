@@ -1,13 +1,10 @@
 <?php
 
-use core\Application;
-
 class m0005_create_reviews_table
 {
-    public function up()
+    public function up(PDO $pdo)
     {
-        $db = Application::$app->db;
-        $sql = "CREATE TABLE reviews (
+        $sql = "CREATE TABLE IF NOT EXISTS reviews (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
             course_id INT NOT NULL,
@@ -20,13 +17,13 @@ class m0005_create_reviews_table
             INDEX idx_user_id (user_id),
             INDEX idx_course_id (course_id)
         ) ENGINE=INNODB;";
-        $db->pdo->exec($sql);
+
+        $pdo->exec($sql);
     }
 
-    public function down()
+    public function down(PDO $pdo)
     {
-        $db = Application::$app->db;
         $sql = "DROP TABLE IF EXISTS reviews;";
-        $db->pdo->exec($sql);
+        $pdo->exec($sql);
     }
 }

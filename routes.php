@@ -1,4 +1,5 @@
 <?php
+//routes.php
 
 global $app;
 
@@ -14,7 +15,6 @@ $app->router->post('/register', [AuthController::class, 'registerPost']);
 
 $app->router->get('/logout', [AuthController::class, 'logout']);
 
-$app->router->get('/dashboard', function() {
-    // You can replace this with a proper controller method later
-    echo "Welcome to your dashboard!";
-});
+$app->router->get('/dashboard', [AuthController::class, 'dashboard']);
+
+

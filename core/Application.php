@@ -13,7 +13,7 @@ class Application {
     public Database $db;
     public Session $session;
     private string $rootPath;
-    private array $config;
+    public array $config;
 
     public function __construct($rootPath, array $config)
     {

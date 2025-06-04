@@ -1,0 +1,20 @@
+{
+    "name": "rezamjkb/lms_linkshim_bootcamp",
+    "description": "This project and composer is for full-stack",
+    "autoload": {
+        "psr-4": {
+            "core\\": "core/",
+            "controllers\\": "controllers/",
+            "models\\": "models/",
+            "Rezamjkb\\LmsLinkshimBootcamp\\": "src/"
+        }
+    }
+    ,
+    "authors": [
+        {
+            "name": "Reza-abolghasemi2004",
+            "email": "only.rezaabolghasemi1383@gmail.com"
+        }
+    ],
+    "require": {}
+}
