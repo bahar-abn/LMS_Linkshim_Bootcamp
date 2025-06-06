@@ -1,0 +1,20 @@
+{
+    "name": "bahar/lms-php-mvc",
+    "autoload": {
+        "psr-4": {
+            "core\\": "core/",
+            "controllers\\": "controllers/",
+            "models\\": "models/"
+        }
+    },
+
+    "authors": [
+        {
+            "name": "bahar-abn",
+            "email": "baharabolhasany2004@gmail.com"
+        }
+    ],
+    "require": {
+      "ext-pdo": "*"
+    }
+}
