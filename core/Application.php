@@ -42,4 +42,5 @@ class Application {
         return isset($_SESSION['user']) && ($_SESSION['user_role'] ?? '') === 'admin';
     }
 
+
 }

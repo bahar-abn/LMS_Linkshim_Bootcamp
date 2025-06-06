@@ -34,7 +34,7 @@ $app->router->get('/my-courses', [CourseController::class, 'myCourses']);
 $app->router->get('/my-course-reviews', [ReviewController::class, 'myCourseReviews']);
 
 // ----------------- Admin Routes -----------------
-$app->router->get('/admin-dashboard', [AdminController::class, 'adminDashboard']);
+$app->router->get('/admin-dashboard', [AdminController::class, 'dashboard']);
 $app->router->get('/manage-users', [AdminController::class, 'manageUsers']);
 $app->router->get('/manage-courses', [AdminController::class, 'manageCourses']);
 $app->router->get('/manage-reviews', [AdminController::class, 'manageReviews']);

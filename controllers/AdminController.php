@@ -3,13 +3,13 @@
 namespace controllers;
 
 use core\Application;
+use core\MainController;
 use core\Request;
 use models\User;
 use models\Course;
-use models\Enrollment;
 use models\Review;
 
-class AdminController
+class AdminController extends MainController
 {
     private string $baseUrl;
 
@@ -29,18 +29,26 @@ class AdminController
         }
     }
 
-    public function adminDashboard(Request $request): void
+    public function dashboard(): void
     {
         $this->ensureAdmin();
 
-        $users = User::latest(100) ?: [];
-        $courses = Course::latest(100) ?: [];
-        $reviews = Review::latest(100) ?: [];
+        $userName = Application::$app->user->name ?? 'Admin';
 
-        require_once Application::$ROOT_DIR . '/views/dashboard/admin.php';
+        $users = User::getAll();                // All users
+        $courses = Course::getAll();            // All courses, not just admin's
+        $reviews = Review::getAllWithDetails(); // All reviews with JOINs
+
+        $this->render('dashboard/admin', [
+            'userName' => $userName,
+            'users' => $users,
+            'courses' => $courses,
+            'reviews' => $reviews
+        ]);
     }
 
-    public function approveCourse($id): void
+
+    public function approveCourse(Request $request, $id): void
     {
         $this->ensureAdmin();
 
@@ -48,12 +56,13 @@ class AdminController
         if ($course) {
             $course->status = 'approved';
             $course->save();
+            Application::$app->session->setFlash('success', 'Course approved successfully');
         }
 
         Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
     }
 
-    public function rejectCourse($id): void
+    public function rejectCourse(Request $request, $id): void
     {
         $this->ensureAdmin();
 
@@ -61,30 +70,35 @@ class AdminController
         if ($course) {
             $course->status = 'rejected';
             $course->save();
+            Application::$app->session->setFlash('warning', 'Course rejected');
         }
 
         Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
     }
 
-    public function deleteUser($id): void
+    public function deleteUser(Request $request, $id): void
     {
         $this->ensureAdmin();
 
         $user = User::find($id);
         if ($user && $user->role !== 'admin') {
             $user->delete();
+            Application::$app->session->setFlash('success', 'User deleted successfully');
+        } else {
+            Application::$app->session->setFlash('error', 'Cannot delete admin user');
         }
 
         Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
     }
 
-    public function deleteReview($id): void
+    public function deleteReview(Request $request, $id): void
     {
         $this->ensureAdmin();
 
         $review = Review::find($id);
         if ($review) {
             $review->delete();
+            Application::$app->session->setFlash('success', 'Review deleted successfully');
         }
 
         Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
