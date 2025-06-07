@@ -11,7 +11,7 @@ class User {
     public string $name = '';
     public string $email = '';
     public string $password = '';
-    public string $role = 'student';
+    public string $role = '';
     public string $created_at;
 
     public function loadData(array $data): void {
@@ -76,10 +76,27 @@ class User {
         return $stmt->fetch() ?: null;
     }
 
-    public static function getAll(): array {
-        $stmt = Application::$app->db->pdo->query("SELECT * FROM users ORDER BY created_at DESC");
-        return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
+    public static function getAll(): array
+    {
+        $pdo = Application::$app->db->pdo;
+
+        $stmt = $pdo->query("SELECT * FROM users");
+        $raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $users = [];
+        foreach ($raw as $row) {
+            $u = new self();
+            $u->id = (int)$row['id'];
+            $u->name = $row['name'] ?? $row['username'] ?? '';
+            $u->email = $row['email'] ?? '';
+            $u->role = $row['role'] ?? 'student';
+            $u->created_at = $row['created_at'] ?? '';
+            $users[] = $u;
+        }
+
+        return $users;
     }
+
 
     public static function count(): int {
         $stmt = Application::$app->db->pdo->prepare("SELECT COUNT(*) FROM users");

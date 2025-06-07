@@ -68,14 +68,11 @@ class Course
 
     public static function getAll(): array
     {
-        $stmt = Application::$app->db->pdo->query("
-            SELECT c.*, u.name AS instructor_name 
-            FROM courses c
-            LEFT JOIN users u ON c.instructor_id = u.id
-            ORDER BY c.created_at DESC
-        ");
-        return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
+        $sql = "SELECT * FROM courses";
+        $stmt = Application::$app->db->pdo->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_CLASS, self::class);
     }
+
 
     public static function find(int $id): ?self
     {

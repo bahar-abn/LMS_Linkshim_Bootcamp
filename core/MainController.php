@@ -4,9 +4,22 @@ namespace core;
 
 class MainController
 {
-    public function render($viewPath, $params = [])
+    // In MainController.php
+    protected function render($view, $params = [])
     {
-        extract($params); // makes $users, $courses, etc. available in the view
-        require_once __DIR__ . '/../views/' . $viewPath . '.php';
+        extract($params, EXTR_SKIP);
+
+        $viewFile = Application::$ROOT_DIR . "/views/$view.php";
+        if (!file_exists($viewFile)) {
+            throw new \Exception("View file not found: $viewFile");
+        }
+
+        ob_start();
+        include $viewFile;
+        $content = ob_get_clean();
+
+        // Optional: wrap with layout
+        include Application::$ROOT_DIR . "/views/layouts/main.php";
     }
+
 }

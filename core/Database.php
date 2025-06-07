@@ -13,10 +13,15 @@ class Database {
         $user = $config['user'] ?? '';
         $password = $config['password'] ?? '';
 
-        $this->pdo = new PDO($dsn, $user, $password);
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        try {
+            $this->pdo = new PDO($dsn, $user, $password);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            echo "✅ Database connected successfully." . PHP_EOL;
+        } catch (PDOException $e) {
+            echo "❌ Database connection failed: " . $e->getMessage() . PHP_EOL;
+            exit(1);
+        }
     }
-
 
     public function applyMigrations(): void {
         $this->createMigrationsTable();
@@ -39,26 +44,27 @@ class Database {
             $className = pathinfo($migration, PATHINFO_FILENAME);
 
             if (!class_exists($className)) {
-                echo "Class $className not found in migration file $migration" . PHP_EOL;
+                echo "⚠️ Class $className not found in $migration" . PHP_EOL;
                 continue;
             }
 
             $instance = new $className();
 
-            echo "Applying migration $migration" . PHP_EOL;
+            echo "🔄 Applying migration: $migration" . PHP_EOL;
             try {
                 $instance->up($this->pdo);
-                echo "Applied migration $migration" . PHP_EOL;
+                echo "✅ Applied migration: $migration" . PHP_EOL;
                 $newMigrations[] = $migration;
             } catch (\Throwable $e) {
-                echo "Failed to apply migration $migration: " . $e->getMessage() . PHP_EOL;
+                echo "❌ Failed to apply migration $migration: " . $e->getMessage() . PHP_EOL;
+                // Optional rollback logic can go here if your migration supports down()
             }
         }
 
         if (!empty($newMigrations)) {
             $this->saveMigrations($newMigrations);
         } else {
-            echo "All migrations are already applied." . PHP_EOL;
+            echo "📦 All migrations already applied." . PHP_EOL;
         }
     }
 
@@ -83,4 +89,18 @@ class Database {
         $stmt = $this->pdo->prepare("INSERT INTO migrations (migration) VALUES $values");
         $stmt->execute();
     }
+    public function prepare(string $sql): \PDOStatement {
+        return $this->pdo->prepare($sql);
+    }
+    public function query(string $sql)
+    {
+        try {
+            return $this->pdo->query($sql);
+        } catch (\PDOException $e) {
+            die("Query failed: " . $e->getMessage());
+        }
+    }
+
+
+
 }

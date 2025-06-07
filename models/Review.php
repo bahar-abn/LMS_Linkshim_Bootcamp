@@ -28,6 +28,19 @@ class Review
         return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
     }
 
+    public static function getAllWithDetails(): array
+    {
+        $sql = "
+        SELECT reviews.*, users.name AS user_name, courses.title AS course_title
+        FROM reviews
+        JOIN users ON reviews.user_id = users.id
+        JOIN courses ON reviews.course_id = courses.id
+    ";
+        $stmt = Application::$app->db->pdo->query($sql);
+        return $stmt->fetchAll(\PDO::FETCH_OBJ);
+    }
+
+
     public static function count(): int
     {
         $stmt = Application::$app->db->pdo->prepare("SELECT COUNT(*) FROM reviews");

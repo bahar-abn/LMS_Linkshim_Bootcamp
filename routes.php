@@ -7,7 +7,7 @@ use controllers\CourseController;
 use controllers\AdminController;
 use controllers\ReviewController;
 
-// Debug current request (optional for development)
+// Debug current request
 error_log("Request: " . $_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI']);
 
 // ----------------- Auth Routes -----------------
@@ -19,12 +19,15 @@ $app->router->get('/register', [AuthController::class, 'register']);
 $app->router->post('/register', [AuthController::class, 'registerPost']);
 
 $app->router->get('/logout', [AuthController::class, 'logout']);
-$app->router->get('/dashboard', [AuthController::class, 'dashboard']);
+$app->router->get('/dashboard', [AuthController::class, 'dashboard']); // global dashboard router
 
 // ----------------- Dashboard Routes (Role-Based) -----------------
 $app->router->get('/admin-dashboard', [AdminController::class, 'adminDashboard']);
 $app->router->get('/instructor-dashboard', [AdminController::class, 'instructorDashboard']);
 $app->router->get('/student-dashboard', [AdminController::class, 'studentDashboard']);
+
+// ✅ NEW: Route using dashboard() directly
+$app->router->get('/admin/dashboard', [AdminController::class, 'dashboard']);
 
 // ----------------- Course Routes -----------------
 $app->router->get('/courses', [CourseController::class, 'index']);

@@ -29,37 +29,51 @@ class AdminController extends MainController
         }
     }
 
+    private function redirectToDashboardWithMessage(string $type, string $message): void
+    {
+        Application::$app->session->setFlash($type, $message);
+        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
+        exit;
+    }
+
     public function dashboard(): void
     {
         $this->ensureAdmin();
 
         $userName = Application::$app->user->name ?? 'Admin';
 
-        $users = User::getAll();                // All users
-        $courses = Course::getAll();            // All courses, not just admin's
-        $reviews = Review::getAllWithDetails(); // All reviews with JOINs
+        $users = User::getAll() ?? [];
+        $courses = Course::getAll() ?? [];
+        $reviews = Review::getAll() ?? [];
+
+        $stats = [
+            'users' => count($users),
+            'courses' => count($courses),
+            'reviews' => count($reviews),
+        ];
 
         $this->render('dashboard/admin', [
             'userName' => $userName,
             'users' => $users,
             'courses' => $courses,
-            'reviews' => $reviews
+            'reviews' => $reviews,
+            'stats' => $stats
         ]);
     }
-
 
     public function approveCourse(Request $request, $id): void
     {
         $this->ensureAdmin();
 
         $course = Course::find($id);
-        if ($course) {
-            $course->status = 'approved';
-            $course->save();
-            Application::$app->session->setFlash('success', 'Course approved successfully');
+        if (!$course) {
+            $this->redirectToDashboardWithMessage('error', 'Course not found');
         }
 
-        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
+        $course->status = 'approved';
+        $course->save();
+
+        $this->redirectToDashboardWithMessage('success', 'Course approved successfully');
     }
 
     public function rejectCourse(Request $request, $id): void
@@ -67,13 +81,14 @@ class AdminController extends MainController
         $this->ensureAdmin();
 
         $course = Course::find($id);
-        if ($course) {
-            $course->status = 'rejected';
-            $course->save();
-            Application::$app->session->setFlash('warning', 'Course rejected');
+        if (!$course) {
+            $this->redirectToDashboardWithMessage('error', 'Course not found');
         }
 
-        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
+        $course->status = 'rejected';
+        $course->save();
+
+        $this->redirectToDashboardWithMessage('warning', 'Course rejected');
     }
 
     public function deleteUser(Request $request, $id): void
@@ -81,14 +96,16 @@ class AdminController extends MainController
         $this->ensureAdmin();
 
         $user = User::find($id);
-        if ($user && $user->role !== 'admin') {
-            $user->delete();
-            Application::$app->session->setFlash('success', 'User deleted successfully');
-        } else {
-            Application::$app->session->setFlash('error', 'Cannot delete admin user');
+        if (!$user) {
+            $this->redirectToDashboardWithMessage('error', 'User not found');
         }
 
-        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
+        if ($user->role === 'admin') {
+            $this->redirectToDashboardWithMessage('error', 'Cannot delete admin user');
+        }
+
+        $user->delete();
+        $this->redirectToDashboardWithMessage('success', 'User deleted successfully');
     }
 
     public function deleteReview(Request $request, $id): void
@@ -96,11 +113,11 @@ class AdminController extends MainController
         $this->ensureAdmin();
 
         $review = Review::find($id);
-        if ($review) {
-            $review->delete();
-            Application::$app->session->setFlash('success', 'Review deleted successfully');
+        if (!$review) {
+            $this->redirectToDashboardWithMessage('error', 'Review not found');
         }
 
-        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
+        $review->delete();
+        $this->redirectToDashboardWithMessage('success', 'Review deleted successfully');
     }
 }

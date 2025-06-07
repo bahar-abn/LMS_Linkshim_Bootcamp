@@ -1,3 +1,14 @@
+<?php
+// Debugging - remove after fixing
+if (!isset($users)) {
+    $users = [];
+    error_log('Users variable was not set in view!');
+    // Test with sample data
+    $users = [
+        (object)['id' => 1, 'name' => 'Test User', 'email' => 'test@example.com', 'role' => 'admin']
+    ];
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +16,8 @@
     <title>Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
+
+<body class="bg-gray-100 min-h-screen">
 <?php $baseUrl = defined('BASE_URL') ? BASE_URL : ''; ?>
 
 <!-- Navbar -->
@@ -23,7 +35,7 @@
 
     <!-- Flash Message -->
     <?php if (!empty($_SESSION['flash'])): ?>
-        <div class="mb-4 p-4 rounded
+        <div class="mb-4 p-4 rounded text-sm font-medium
             <?= match ($_SESSION['flash']['type']) {
             'success' => 'bg-green-100 text-green-800',
             'error' => 'bg-red-100 text-red-800',
@@ -36,33 +48,31 @@
 
     <!-- Dashboard Stats -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white border-l-4 border-red-500 shadow p-4">
-            <h3 class="text-sm text-gray-600">Total Users</h3>
-            <p class="text-2xl font-bold text-red-700"><?= $stats['users'] ?? 0 ?></p>
-        </div>
-        <div class="bg-white border-l-4 border-red-500 shadow p-4">
-            <h3 class="text-sm text-gray-600">Total Courses</h3>
-            <p class="text-2xl font-bold text-red-700"><?= $stats['courses'] ?? 0 ?></p>
-        </div>
-        <div class="bg-white border-l-4 border-red-500 shadow p-4">
-            <h3 class="text-sm text-gray-600">Total Reviews</h3>
-            <p class="text-2xl font-bold text-red-700"><?= $stats['reviews'] ?? 0 ?></p>
-        </div>
+        <?php foreach ([
+                           ['label' => 'Total Users', 'count' => $stats['users'] ?? 0],
+                           ['label' => 'Total Courses', 'count' => $stats['courses'] ?? 0],
+                           ['label' => 'Total Reviews', 'count' => $stats['reviews'] ?? 0]
+                       ] as $stat): ?>
+            <div class="bg-white border-l-4 border-red-500 shadow p-4">
+                <h3 class="text-sm text-gray-600"><?= $stat['label'] ?></h3>
+                <p class="text-2xl font-bold text-red-700"><?= $stat['count'] ?></p>
+            </div>
+        <?php endforeach; ?>
     </section>
 
-    <!-- Manage Users -->
-    <section class="bg-red-100 hover:bg-red-200 p-4 rounded mb-6">
+    <!-- User Management -->
+    <section class="bg-red-50 p-4 rounded mb-6">
         <h2 class="text-xl font-semibold text-red-800 mb-3">👥 Manage Users</h2>
         <?php if (!empty($users)): ?>
             <div class="overflow-x-auto">
                 <table class="w-full border text-sm">
-                    <thead>
-                    <tr class="bg-gray-200">
-                        <th class="px-4 py-2">ID</th>
-                        <th class="px-4 py-2">Name</th>
-                        <th class="px-4 py-2">Email</th>
-                        <th class="px-4 py-2">Role</th>
-                        <th class="px-4 py-2">Action</th>
+                    <thead class="bg-gray-200">
+                    <tr>
+                        <th class="px-4 py-2 text-left">ID</th>
+                        <th class="px-4 py-2 text-left">Name</th>
+                        <th class="px-4 py-2 text-left">Email</th>
+                        <th class="px-4 py-2 text-left">Role</th>
+                        <th class="px-4 py-2 text-left">Action</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -76,7 +86,9 @@
                                 <?php if ($user->role !== 'admin'): ?>
                                     <a href="<?= $baseUrl ?>/admin/delete-user/<?= $user->id ?>"
                                        class="text-red-600 hover:underline"
-                                       onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
+                                       onclick="return confirm('Are you sure you want to delete this user?')">
+                                        Delete
+                                    </a>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -89,19 +101,19 @@
         <?php endif; ?>
     </section>
 
-    <!-- Manage Courses -->
-    <section class="bg-red-100 hover:bg-red-200 p-4 rounded mb-6">
+    <!-- Course Management -->
+    <section class="bg-red-50 p-4 rounded mb-6">
         <h2 class="text-xl font-semibold text-red-800 mb-3">📘 Manage Courses</h2>
         <?php if (!empty($courses)): ?>
             <div class="overflow-x-auto">
                 <table class="w-full border text-sm">
-                    <thead>
-                    <tr class="bg-gray-200">
-                        <th class="px-4 py-2">ID</th>
-                        <th class="px-4 py-2">Title</th>
-                        <th class="px-4 py-2">Instructor</th>
-                        <th class="px-4 py-2">Status</th>
-                        <th class="px-4 py-2">Action</th>
+                    <thead class="bg-gray-200">
+                    <tr>
+                        <th class="px-4 py-2 text-left">ID</th>
+                        <th class="px-4 py-2 text-left">Title</th>
+                        <th class="px-4 py-2 text-left">Instructor</th>
+                        <th class="px-4 py-2 text-left">Status</th>
+                        <th class="px-4 py-2 text-left">Action</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -111,7 +123,7 @@
                             <td class="px-4 py-2"><?= htmlspecialchars($course->title) ?></td>
                             <td class="px-4 py-2"><?= htmlspecialchars($course->instructor_name ?? 'Unknown') ?></td>
                             <td class="px-4 py-2">
-                                <span class="<?= match($course->status) {
+                                <span class="font-semibold <?= match($course->status) {
                                     'approved' => 'text-green-600',
                                     'rejected' => 'text-red-600',
                                     default => 'text-yellow-600'
@@ -123,12 +135,16 @@
                                 <?php if ($course->status !== 'approved'): ?>
                                     <a href="<?= $baseUrl ?>/admin/approve-course/<?= $course->id ?>"
                                        class="text-green-600 hover:underline"
-                                       onclick="return confirm('Approve this course?')">Approve</a>
+                                       onclick="return confirm('Approve this course?')">
+                                        Approve
+                                    </a>
                                 <?php endif; ?>
                                 <?php if ($course->status !== 'rejected'): ?>
                                     <a href="<?= $baseUrl ?>/admin/reject-course/<?= $course->id ?>"
                                        class="text-yellow-600 hover:underline"
-                                       onclick="return confirm('Reject this course?')">Reject</a>
+                                       onclick="return confirm('Reject this course?')">
+                                        Reject
+                                    </a>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -141,20 +157,20 @@
         <?php endif; ?>
     </section>
 
-    <!-- Manage Reviews -->
-    <section class="bg-red-100 hover:bg-red-200 p-4 rounded mb-6">
+    <!-- Review Management -->
+    <section class="bg-red-50 p-4 rounded mb-6">
         <h2 class="text-xl font-semibold text-red-800 mb-3">📝 Manage Reviews</h2>
         <?php if (!empty($reviews)): ?>
             <div class="overflow-x-auto">
                 <table class="w-full border text-sm">
-                    <thead>
-                    <tr class="bg-gray-200">
-                        <th class="px-4 py-2">ID</th>
-                        <th class="px-4 py-2">User</th>
-                        <th class="px-4 py-2">Course</th>
-                        <th class="px-4 py-2">Comment</th>
-                        <th class="px-4 py-2">Rating</th>
-                        <th class="px-4 py-2">Action</th>
+                    <thead class="bg-gray-200">
+                    <tr>
+                        <th class="px-4 py-2 text-left">ID</th>
+                        <th class="px-4 py-2 text-left">User</th>
+                        <th class="px-4 py-2 text-left">Course</th>
+                        <th class="px-4 py-2 text-left">Comment</th>
+                        <th class="px-4 py-2 text-left">Rating</th>
+                        <th class="px-4 py-2 text-left">Action</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -165,12 +181,14 @@
                             <td class="px-4 py-2"><?= htmlspecialchars($review->course_title ?? 'Unknown') ?></td>
                             <td class="px-4 py-2"><?= htmlspecialchars($review->comment) ?></td>
                             <td class="px-4 py-2">
-                                <?= isset($review->rating) ? str_repeat('⭐', (int)$review->rating) : '' ?>
+                                <?= isset($review->rating) ? str_repeat('⭐', (int)$review->rating) : '—' ?>
                             </td>
                             <td class="px-4 py-2">
                                 <a href="<?= $baseUrl ?>/admin/delete-review/<?= $review->id ?>"
                                    class="text-red-600 hover:underline"
-                                   onclick="return confirm('Delete this review?')">Delete</a>
+                                   onclick="return confirm('Delete this review?')">
+                                    Delete
+                                </a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -181,7 +199,6 @@
             <p class="text-gray-600">No reviews found.</p>
         <?php endif; ?>
     </section>
-
 </div>
 </body>
 </html>
