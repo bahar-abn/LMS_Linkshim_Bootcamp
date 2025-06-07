@@ -7,51 +7,41 @@ use PDO;
 
 class Course
 {
-    public int $id;
+    public int $id = 0;
     public string $title = '';
     public string $description = '';
-    public int $category_id;
-    public int $instructor_id;
     public string $status = 'pending';
-    public string $created_at;
-    public string $instructor_name;
+    public ?int $instructor_id = null;
+    public ?int $category_id = null;
+    public string $created_at = '';
+    public string $instructor_name = '';
 
+    // Constructor is useful only when manually creating course objects
     public function __construct(array $data = [])
     {
-        $this->id = $data['id'] ?? 0;
-        $this->title = $data['title'] ?? '';
-        $this->description = $data['description'] ?? '';
-        $this->category_id = $data['category_id'] ?? 0;
-        $this->instructor_id = $data['instructor_id'] ?? 0;
-        $this->status = $data['status'] ?? 'pending';
-        $this->created_at = $data['created_at'] ?? '';
-        $this->instructor_name = $data['instructor_name'] ?? '';
+        if (!empty($data)) {
+            $this->id = $data['id'] ?? 0;
+            $this->title = $data['title'] ?? '';
+            $this->description = $data['description'] ?? '';
+            $this->category_id = $data['category_id'] ?? 0;
+            $this->instructor_id = $data['instructor_id'] ?? 0;
+            $this->status = $data['status'] ?? 'pending';
+            $this->created_at = $data['created_at'] ?? '';
+            $this->instructor_name = $data['instructor_name'] ?? '';
+        }
     }
 
-    public function save(): bool
+    public function save()
     {
-        if ($this->id) {
-            return $this->update();
-        }
-
-        $stmt = Application::$app->db->pdo->prepare("
-            INSERT INTO courses (title, description, category_id, instructor_id, status, created_at)
-            VALUES (:title, :description, :category_id, :instructor_id, :status, NOW())
-        ");
-
-        $result = $stmt->execute([
-            ':title' => $this->title,
-            ':description' => $this->description,
-            ':category_id' => $this->category_id,
-            ':instructor_id' => $this->instructor_id,
-            ':status' => $this->status,
-        ]);
-
-        if ($result) {
-            $this->id = (int)Application::$app->db->pdo->lastInsertId();
-        }
-
-        return $result;
+        $db = Application::$app->db->pdo;
+        $stmt = $db->prepare("INSERT INTO courses (title, description, status, instructor_id, category_id) VALUES (:title, :description, :status, :instructor_id, :category_id)");
+        $stmt->bindValue(':title', $this->title);
+        $stmt->bindValue(':description', $this->description);
+        $stmt->bindValue(':status', $this->status);
+        $stmt->bindValue(':instructor_id', $this->instructor_id);
+        $stmt->bindValue(':category_id', $this->category_id);
+        $stmt->execute();
+        $this->id = $db->lastInsertId();
     }
 
     public function update(): bool
@@ -87,11 +77,6 @@ class Course
         return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
     }
 
-    /**
-     * Find a course by its ID
-     * @param int $id
-     * @return self|null
-     */
     public static function find(int $id): ?self
     {
         $stmt = Application::$app->db->pdo->prepare("
@@ -101,6 +86,19 @@ class Course
             WHERE c.id = :id
         ");
         $stmt->execute([':id' => $id]);
+        $stmt->setFetchMode(PDO::FETCH_CLASS, self::class);
+        return $stmt->fetch() ?: null;
+    }
+
+    public static function findById(int $id): ?self
+    {
+        $stmt = Application::$app->db->pdo->prepare("
+            SELECT c.*, u.name AS instructor_name 
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            WHERE c.id = ?
+        ");
+        $stmt->execute([$id]);
         $stmt->setFetchMode(PDO::FETCH_CLASS, self::class);
         return $stmt->fetch() ?: null;
     }
@@ -138,10 +136,16 @@ class Course
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
     }
-    public static function findById(int $id): ?array
+
+    public static function allApproved(): array
     {
-        $stmt = Application::$app->db->pdo->prepare("SELECT * FROM courses WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        $stmt = Application::$app->db->pdo->query("
+            SELECT c.*, u.name AS instructor_name 
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            WHERE c.status = 'approved'
+            ORDER BY c.created_at DESC
+        ");
+        return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
     }
 }

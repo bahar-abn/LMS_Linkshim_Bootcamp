@@ -34,4 +34,13 @@ class Review
         $stmt->execute();
         return (int)$stmt->fetchColumn();
     }
+    public static function getByCourseId(int $courseId): array {
+        $db = \core\Application::$app->db->pdo;
+
+        $stmt = $db->prepare("SELECT * FROM reviews WHERE course_id = :course_id ORDER BY created_at DESC");
+        $stmt->bindValue(':course_id', $courseId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
+    }
 }
