@@ -1,5 +1,5 @@
 <?php
-define('BASE_URL', '/lms-php-mvc/public');
+const BASE_URL = '/lms-php-mvc/public';
 
 return [
     'db' => [

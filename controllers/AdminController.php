@@ -3,104 +3,92 @@
 namespace controllers;
 
 use core\Application;
-use core\MainController;
 use core\Request;
 use models\User;
 use models\Course;
-use models\Review;
+use models\Enrollment;
+use models\Review;  // assuming you have this model
 
-class AdminController extends MainController
+class AdminController
 {
-    private string $baseUrl;
-
-    public function __construct()
+    public function adminDashboard(Request $request)
     {
-        $this->baseUrl = Application::$app->config['BASE_URL'] ?? '/login';
-    }
+        if (!Application::$app->isAdmin()) {
+            Application::$app->response->redirect(BASE_URL . '/login');
+            return;
+        }
 
-    private function ensureAdmin(): void
-    {
-        $user = Application::$app->user;
-        $role = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
+        try {
+            // Test DB connection and get total users count (optional)
+            $pdo = Application::$app->db->pdo;
+            $stmt = $pdo->query("SELECT COUNT(*) AS total_users FROM users");
+            $result = $stmt->fetch();
+            $totalUsersFromTest = $result['total_users'] ?? 0;
 
-        if ($role !== 'admin') {
-            Application::$app->response->redirect($this->baseUrl . '/login');
+            // Get total reviews count (if no Review model, use raw query)
+            $stmtReviews = $pdo->query("SELECT COUNT(*) AS total_reviews FROM reviews");
+            $resultReviews = $stmtReviews->fetch();
+            $totalReviewsFromTest = $resultReviews['total_reviews'] ?? 0;
+
+            // Get latest 100 reviews from DB (optional, for admin panel listing)
+            $stmtLatestReviews = $pdo->query("SELECT * FROM reviews ORDER BY created_at DESC LIMIT 100");
+            $latestReviewsFromDb = $stmtLatestReviews->fetchAll(\PDO::FETCH_ASSOC);
+
+        } catch (\PDOException $e) {
+            echo "Database connection failed: " . $e->getMessage();
             exit;
         }
-    }
 
-    public function dashboard(): void
-    {
-        $this->ensureAdmin();
+        // Prepare stats array with keys matching view expectations
+        $stats = [
+            'users' => User::count(),
+            'courses' => Course::count(),
+            'reviews' => Review::count() ?? $totalReviewsFromTest,  // fallback if Review::count() missing
+        ];
 
-        $userName = Application::$app->user->name ?? 'Admin';
+        // Fetch data arrays for the view
+        $users = User::latest(100);        // latest 100 users
+        $courses = Course::latest(100);    // latest 100 courses
 
-        $users = User::getAll();                // All users
-        $courses = Course::getAll();            // All courses, not just admin's
-        $reviews = Review::getAllWithDetails(); // All reviews with JOINs
-
-        $this->render('dashboard/admin', [
-            'userName' => $userName,
-            'users' => $users,
-            'courses' => $courses,
-            'reviews' => $reviews
-        ]);
-    }
-
-
-    public function approveCourse(Request $request, $id): void
-    {
-        $this->ensureAdmin();
-
-        $course = Course::find($id);
-        if ($course) {
-            $course->status = 'approved';
-            $course->save();
-            Application::$app->session->setFlash('success', 'Course approved successfully');
-        }
-
-        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
-    }
-
-    public function rejectCourse(Request $request, $id): void
-    {
-        $this->ensureAdmin();
-
-        $course = Course::find($id);
-        if ($course) {
-            $course->status = 'rejected';
-            $course->save();
-            Application::$app->session->setFlash('warning', 'Course rejected');
-        }
-
-        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
-    }
-
-    public function deleteUser(Request $request, $id): void
-    {
-        $this->ensureAdmin();
-
-        $user = User::find($id);
-        if ($user && $user->role !== 'admin') {
-            $user->delete();
-            Application::$app->session->setFlash('success', 'User deleted successfully');
+        // Use Review model or fallback to raw DB results
+        if (method_exists(Review::class, 'latest')) {
+            $reviews = Review::latest(100);
         } else {
-            Application::$app->session->setFlash('error', 'Cannot delete admin user');
+            // convert DB results to objects or pass raw arrays
+            $reviews = $latestReviewsFromDb;
         }
 
-        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
+        // Logged in admin name for greeting in the view
+        $userName = Application::$app->user['name'] ?? 'Admin';
+
+        // Base URL for generating links in the view
+        $baseUrl = defined('BASE_URL') ? BASE_URL : '';
+
+        // Load the admin dashboard view
+        require_once Application::$ROOT_DIR . '/views/dashboard/admin.php';
     }
 
-    public function deleteReview(Request $request, $id): void
+    public function studentDashboard(Request $request): void
     {
-        $this->ensureAdmin();
-
-        $review = Review::find($id);
-        if ($review) {
-            $review->delete();
-            Application::$app->session->setFlash('success', 'Review deleted successfully');
+        if (!Application::$app->isStudent()) {
+            Application::$app->response->redirect(BASE_URL . '/login');
+            return;
         }
 
-        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
+        $userId = Application::$app->user['id'] ?? null;
+        $enrollments = Enrollment::findByUser($userId);
+
+        require_once Application::$ROOT_DIR . '/views/dashboard/student.php';
+    }
+
+    public function manageUsers(Request $request)
+    {
+        if (!Application::$app->isAdmin()) {
+            Application::$app->response->redirect(BASE_URL . '/login');
+            return;
+        }
+
+        $users = User::latest(100);
+        require_once Application::$ROOT_DIR . '/views/admin/users.php';
     }
 }

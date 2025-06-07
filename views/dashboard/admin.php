@@ -34,6 +34,22 @@
         <?php unset($_SESSION['flash']); ?>
     <?php endif; ?>
 
+    <!-- Dashboard Stats -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white border-l-4 border-red-500 shadow p-4">
+            <h3 class="text-sm text-gray-600">Total Users</h3>
+            <p class="text-2xl font-bold text-red-700"><?= $stats['users'] ?? 0 ?></p>
+        </div>
+        <div class="bg-white border-l-4 border-red-500 shadow p-4">
+            <h3 class="text-sm text-gray-600">Total Courses</h3>
+            <p class="text-2xl font-bold text-red-700"><?= $stats['courses'] ?? 0 ?></p>
+        </div>
+        <div class="bg-white border-l-4 border-red-500 shadow p-4">
+            <h3 class="text-sm text-gray-600">Total Reviews</h3>
+            <p class="text-2xl font-bold text-red-700"><?= $stats['reviews'] ?? 0 ?></p>
+        </div>
+    </section>
+
     <!-- Manage Users -->
     <section class="bg-red-100 hover:bg-red-200 p-4 rounded mb-6">
         <h2 class="text-xl font-semibold text-red-800 mb-3">👥 Manage Users</h2>

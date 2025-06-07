@@ -1,4 +1,5 @@
 <?php
+
 global $app;
 
 use controllers\AuthController;
@@ -6,7 +7,7 @@ use controllers\CourseController;
 use controllers\AdminController;
 use controllers\ReviewController;
 
-// Debug current request
+// Debug current request (optional for development)
 error_log("Request: " . $_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI']);
 
 // ----------------- Auth Routes -----------------
@@ -19,6 +20,11 @@ $app->router->post('/register', [AuthController::class, 'registerPost']);
 
 $app->router->get('/logout', [AuthController::class, 'logout']);
 $app->router->get('/dashboard', [AuthController::class, 'dashboard']);
+
+// ----------------- Dashboard Routes (Role-Based) -----------------
+$app->router->get('/admin-dashboard', [AdminController::class, 'adminDashboard']);
+$app->router->get('/instructor-dashboard', [AdminController::class, 'instructorDashboard']);
+$app->router->get('/student-dashboard', [AdminController::class, 'studentDashboard']);
 
 // ----------------- Course Routes -----------------
 $app->router->get('/courses', [CourseController::class, 'index']);
@@ -34,7 +40,6 @@ $app->router->get('/my-courses', [CourseController::class, 'myCourses']);
 $app->router->get('/my-course-reviews', [ReviewController::class, 'myCourseReviews']);
 
 // ----------------- Admin Routes -----------------
-$app->router->get('/admin-dashboard', [AdminController::class, 'dashboard']);
 $app->router->get('/manage-users', [AdminController::class, 'manageUsers']);
 $app->router->get('/manage-courses', [AdminController::class, 'manageCourses']);
 $app->router->get('/manage-reviews', [AdminController::class, 'manageReviews']);

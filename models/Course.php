@@ -7,28 +7,25 @@ use PDO;
 
 class Course
 {
-    public $id;
-    public $title;
-    public $description;
-    public $category_id;
-    public $instructor_id;
-    public $status;
-    public $created_at;
-
-    public static function tableName(): string
-    {
-        return 'courses';
-    }
+    public int $id;
+    public string $title = '';
+    public string $description = '';
+    public int $category_id;
+    public int $instructor_id;
+    public string $status = 'pending';
+    public string $created_at;
+    public string $instructor_name;
 
     public function __construct(array $data = [])
     {
-        $this->id = $data['id'] ?? null;
+        $this->id = $data['id'] ?? 0;
         $this->title = $data['title'] ?? '';
         $this->description = $data['description'] ?? '';
-        $this->category_id = $data['category_id'] ?? null;
-        $this->instructor_id = $data['instructor_id'] ?? null;
+        $this->category_id = $data['category_id'] ?? 0;
+        $this->instructor_id = $data['instructor_id'] ?? 0;
         $this->status = $data['status'] ?? 'pending';
-        $this->created_at = $data['created_at'] ?? null;
+        $this->created_at = $data['created_at'] ?? '';
+        $this->instructor_name = $data['instructor_name'] ?? '';
     }
 
     public function save(): bool
@@ -51,7 +48,7 @@ class Course
         ]);
 
         if ($result) {
-            $this->id = Application::$app->db->pdo->lastInsertId();
+            $this->id = (int)Application::$app->db->pdo->lastInsertId();
         }
 
         return $result;
@@ -79,7 +76,7 @@ class Course
         ]);
     }
 
-    public static function getAllWithInstructor(): array
+    public static function getAll(): array
     {
         $stmt = Application::$app->db->pdo->query("
             SELECT c.*, u.name AS instructor_name 
@@ -87,25 +84,39 @@ class Course
             LEFT JOIN users u ON c.instructor_id = u.id
             ORDER BY c.created_at DESC
         ");
-        return $stmt->fetchAll(PDO::FETCH_OBJ);
+        return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
     }
 
-    public static function find($id): ?Course
+    public static function find(int $id): ?self
     {
-        $stmt = Application::$app->db->pdo->prepare("SELECT * FROM courses WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = Application::$app->db->pdo->prepare("
+            SELECT c.*, u.name AS instructor_name 
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            WHERE c.id = :id
+        ");
+        $stmt->execute([':id' => $id]);
         $stmt->setFetchMode(PDO::FETCH_CLASS, self::class);
         return $stmt->fetch() ?: null;
     }
-    public static function getAll(): array
+
+    public static function count(): int
     {
-        $stmt = Application::$app->db->pdo->query("
-        SELECT c.*, u.name AS instructor_name 
-        FROM courses c
-        JOIN users u ON c.instructor_id = u.id
-        ORDER BY c.id DESC
-    ");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $stmt = Application::$app->db->pdo->prepare("SELECT COUNT(*) FROM courses");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 
+    public static function findByInstructor(int $instructorId): array
+    {
+        $stmt = Application::$app->db->pdo->prepare("
+            SELECT c.*, u.name AS instructor_name 
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            WHERE c.instructor_id = :instructor_id
+            ORDER BY c.created_at DESC
+        ");
+        $stmt->execute([':instructor_id' => $instructorId]);
+        return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
+    }
 }

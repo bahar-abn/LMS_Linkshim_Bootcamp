@@ -2,7 +2,7 @@
 
 class m0003_create_courses_table
 {
-    public function up(\PDO $pdo)
+    public function up(\PDO $pdo): void
     {
         $sql = "CREATE TABLE IF NOT EXISTS courses (
         id INT AUTO_INCREMENT PRIMARY KEY,
