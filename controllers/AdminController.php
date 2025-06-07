@@ -47,8 +47,8 @@ class AdminController
         ];
 
         // Fetch data arrays for the view
-        $users = User::latest(100);        // latest 100 users
-        $courses = Course::latest(100);    // latest 100 courses
+        $users = method_exists(User::class, 'latest') ? User::latest(100) : [];
+        $courses = method_exists(Course::class, 'latest') ? Course::latest(100) : [];
 
         // Use Review model or fallback to raw DB results
         if (method_exists(Review::class, 'latest')) {

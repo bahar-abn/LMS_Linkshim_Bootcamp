@@ -87,7 +87,8 @@ class User {
         return (int)$stmt->fetchColumn();
     }
 
-    public static function latest(int $limit = 5): array {
+    public static function latest(int $limit = 100): array
+    {
         $stmt = Application::$app->db->pdo->prepare("SELECT * FROM users ORDER BY created_at DESC LIMIT :limit");
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();

@@ -18,10 +18,10 @@ if (!defined('BASE_URL')) define('BASE_URL', '/lms-php-mvc/public');
         <div class="space-y-4">
             <?php foreach ($courses as $course): ?>
                 <div class="p-4 bg-white rounded shadow hover:shadow-md transition">
-                    <h2 class="text-xl font-semibold text-blue-700"><?= htmlspecialchars($course['title']) ?></h2>
-                    <p class="text-gray-700"><?= htmlspecialchars($course['description']) ?></p>
-                    <p class="text-sm text-gray-600 mt-1">Status: <span class="font-medium"><?= htmlspecialchars($course['status']) ?></span></p>
-                    <a href="<?= BASE_URL ?>/courses/<?= $course['id'] ?>" class="text-sm text-blue-600 hover:underline inline-block mt-2">
+                    <h2 class="text-xl font-semibold text-blue-700"><?= htmlspecialchars($course->title) ?></h2>
+                    <p class="text-gray-700"><?= htmlspecialchars($course->description) ?></p>
+                    <p class="text-sm text-gray-600 mt-1">Status: <span class="font-medium"><?= htmlspecialchars($course->status) ?></span></p>
+                    <a href="<?= BASE_URL ?>/courses/<?= $course->id ?>" class="text-sm text-blue-600 hover:underline inline-block mt-2">
                         View Details →
                     </a>
                 </div>

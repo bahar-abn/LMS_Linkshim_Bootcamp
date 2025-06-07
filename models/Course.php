@@ -87,6 +87,11 @@ class Course
         return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
     }
 
+    /**
+     * Find a course by its ID
+     * @param int $id
+     * @return self|null
+     */
     public static function find(int $id): ?self
     {
         $stmt = Application::$app->db->pdo->prepare("
@@ -118,5 +123,25 @@ class Course
         ");
         $stmt->execute([':instructor_id' => $instructorId]);
         return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
+    }
+
+    public static function latest(int $limit = 100): array
+    {
+        $stmt = Application::$app->db->pdo->prepare("
+            SELECT c.*, u.name AS instructor_name 
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            ORDER BY c.created_at DESC 
+            LIMIT :limit
+        ");
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
+    }
+    public static function findById(int $id): ?array
+    {
+        $stmt = Application::$app->db->pdo->prepare("SELECT * FROM courses WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 }

@@ -2,16 +2,15 @@
 namespace core;
 
 class Request {
+    private array $routeParams = [];
+
     public function getPath(): string {
         $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
         $scriptName = $_SERVER['SCRIPT_NAME'];
 
-
         $basePath = str_replace('/index.php', '', $scriptName);
 
-
         $path = str_replace($basePath, '', $requestUri);
-
 
         $position = strpos($path, '?');
         if ($position !== false) {
@@ -42,17 +41,16 @@ class Request {
 
         return $body;
     }
-    private array $routeParams = [];
 
-    public function getRouteParam(string $key): ?string
-    {
-        return $this->routeParams[$key] ?? null;
-    }
+    // Route Params
 
     public function setRouteParams(array $params): void
     {
         $this->routeParams = $params;
     }
 
-
+    public function getRouteParam(string $key): ?string
+    {
+        return $this->routeParams[$key] ?? null;
+    }
 }

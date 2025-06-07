@@ -1,6 +1,6 @@
 <?php
-
 namespace core;
+
 use controllers\CourseController;
 
 class Router
@@ -44,6 +44,8 @@ class Router
 
             // Inject route params into Request object
             $this->request->setRouteParams($this->routeParams);
+
+            // Call controller method with Request only
             return call_user_func([$controller, $methodName], $this->request);
         }
 

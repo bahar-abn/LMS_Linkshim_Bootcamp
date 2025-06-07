@@ -14,12 +14,12 @@ if (!defined('BASE_URL')) define('BASE_URL', '/lms-php-mvc/public');
 <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
 
     <?php if (!empty($course)): ?>
-        <h1 class="text-3xl font-bold mb-4 text-blue-700"><?= htmlspecialchars($course['title']) ?></h1>
-        <p class="text-gray-800 mb-4 whitespace-pre-line"><?= htmlspecialchars($course['description']) ?></p>
-        <p class="text-sm text-gray-600 mb-6">Status: <span class="font-semibold"><?= htmlspecialchars($course['status']) ?></span></p>
+        <h1 class="text-3xl font-bold mb-4 text-blue-700"><?= htmlspecialchars($course->title) ?></h1>
+        <p class="text-gray-800 mb-4 whitespace-pre-line"><?= nl2br(htmlspecialchars($course->description)) ?></p>
+        <p class="text-sm text-gray-600 mb-6">Status: <span class="font-semibold"><?= htmlspecialchars($course->status) ?></span></p>
 
-        <?php if (($_SESSION['role'] ?? '') === 'student'): ?>
-            <form action="<?= BASE_URL ?>/courses/<?= $course['id'] ?>/enroll" method="post">
+        <?php if (($_SESSION['user']['role'] ?? '') === 'student'): ?>
+            <form action="<?= BASE_URL ?>/courses/<?= $course->id ?>/enroll" method="post">
                 <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                     Enroll in this Course
                 </button>
