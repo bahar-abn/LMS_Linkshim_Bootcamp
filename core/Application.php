@@ -4,30 +4,29 @@ namespace core;
 use core\Response;
 use core\Session;
 
-class Application {
+// In core/Application.php (create if it doesn't exist)
+namespace core;
 
+class Application
+{
+    public static Application $app;
     public static string $ROOT_DIR;
     public Router $router;
     public Request $request;
     public Response $response;
-    public static Application $app;
-    public Database $db;
     public Session $session;
-    private string $rootPath;
-    public array $config;
+    public ?object $user = null; // Add this line
+    public array $config = [];
 
-    public function __construct($rootPath, array $config)
+    public function __construct(string $rootDir, array $config)
     {
-        self::$ROOT_DIR = $rootPath;
+        self::$ROOT_DIR = $rootDir;
         self::$app = $this;
-
-        $this->rootPath = $rootPath;
-        $this->config = $config;
-
         $this->request = new Request();
         $this->response = new Response();
+        $this->router = new Router($this->request, $this->response);
         $this->session = new Session();
-
+        $this->config = $config;
         $this->router = new Router($this->request, $this->response);
         $this->db = new Database($config['db']);
     }

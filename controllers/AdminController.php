@@ -38,28 +38,37 @@ class AdminController extends MainController
 
     public function dashboard(): void
     {
-        $this->ensureAdmin();
+        // $this->ensureAdmin();
 
-        $userName = Application::$app->user->name ?? 'Admin';
-
+        // Get data
         $users = User::getAll() ?? [];
         $courses = Course::getAll() ?? [];
         $reviews = Review::getAll() ?? [];
 
-        $stats = [
-            'users' => count($users),
-            'courses' => count($courses),
-            'reviews' => count($reviews),
-        ];
+        // Debug: Check data before rendering
+        error_log("Users count: " . count($users));
+        error_log("Courses count: " . count($courses));
+        error_log("Reviews count: " . count($reviews));
 
-        $this->render('dashboard/admin', [
-            'userName' => $userName,
+        // Render with explicit variables
+        $viewData = [
+            'userName' => Application::$app->user->name ?? 'Admin',
             'users' => $users,
             'courses' => $courses,
-            'reviews' => $reviews,
-            'stats' => $stats
-        ]);
-    }
+            'reviews' => $reviews
+            // 'stats' is removed, as the view counts directly
+        ];
+
+        // Debug: Check view data
+        error_log("View data: " . print_r(array_keys($viewData), true));
+        $this->render('dashboard/admin', [
+            'userName' => 'Admin',
+            'users' => $users,
+            'courses' => $courses,
+            'reviews' => $reviews
+        ], false); // 🔥 disables layout
+}
+
 
     public function approveCourse(Request $request, $id): void
     {

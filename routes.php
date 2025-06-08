@@ -6,6 +6,8 @@ use controllers\AuthController;
 use controllers\CourseController;
 use controllers\AdminController;
 use controllers\ReviewController;
+use models\Course;
+use models\User;
 
 // Debug current request
 error_log("Request: " . $_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI']);
@@ -19,10 +21,10 @@ $app->router->get('/register', [AuthController::class, 'register']);
 $app->router->post('/register', [AuthController::class, 'registerPost']);
 
 $app->router->get('/logout', [AuthController::class, 'logout']);
-$app->router->get('/dashboard', [AuthController::class, 'dashboard']); // global dashboard router
+$app->router->get('/dashboard', [AdminController::class, 'dashboard']); // global dashboard router
 
 // ----------------- Dashboard Routes (Role-Based) -----------------
-$app->router->get('/admin-dashboard', [AdminController::class, 'adminDashboard']);
+$app->router->get('/admin-dashboard', [AdminController::class, 'dashboard']);
 $app->router->get('/instructor-dashboard', [AdminController::class, 'instructorDashboard']);
 $app->router->get('/student-dashboard', [AdminController::class, 'studentDashboard']);
 
@@ -50,3 +52,19 @@ $app->router->get('/courses/{id}/approve', [AdminController::class, 'approveCour
 $app->router->get('/courses/{id}/reject', [AdminController::class, 'rejectCourse']);
 $app->router->get('/users/{id}/delete', [AdminController::class, 'deleteUser']);
 $app->router->get('/reviews/{id}/delete', [AdminController::class, 'deleteReview']);
+
+// In routes.php
+$app->router->get('/test-data', function() {
+    $users = User::getAll();
+    echo "<pre>Users: " . print_r($users, true) . "</pre>";
+
+    $courses = Course::getAll();
+    echo "<pre>Courses: " . print_r($courses, true) . "</pre>";
+
+    die(); // Stop execution to see output
+});
+
+$app->router->get('/admin/delete-user/{id}', [AdminController::class,'deleteUser']);
+$app->router->post('/admin/delete-user/{id}', [AdminController::class,'deleteUser']);
+
+

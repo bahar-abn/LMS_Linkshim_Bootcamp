@@ -5,21 +5,19 @@ namespace core;
 class MainController
 {
     // In MainController.php
-    protected function render($view, $params = [])
+    public function render($view, $params = [], $useLayout = true)
     {
-        extract($params, EXTR_SKIP);
-
-        $viewFile = Application::$ROOT_DIR . "/views/$view.php";
-        if (!file_exists($viewFile)) {
-            throw new \Exception("View file not found: $viewFile");
-        }
+        extract($params);
 
         ob_start();
-        include $viewFile;
+        include __DIR__ . "/../views/$view.php";
         $content = ob_get_clean();
 
-        // Optional: wrap with layout
-        include Application::$ROOT_DIR . "/views/layouts/main.php";
+        if ($useLayout) {
+            include __DIR__ . '/../views/layout/main.php';
+        } else {
+            echo $content;
+        }
     }
 
 }

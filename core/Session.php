@@ -8,9 +8,20 @@ class Session {
         }
     }
 
-    public function setflash(string $key, $value): void
+    // In Session.php
+    public function setFlash(string $type, string $message): void
     {
-        $_SESSION[$key] = $value;
+        $_SESSION['flash'] = [
+            'type' => $type,
+            'message' => $message
+        ];
+    }
+
+    public function getFlash(): ?array
+    {
+        $flash = $_SESSION['flash'] ?? null;
+        unset($_SESSION['flash']);
+        return $flash;
     }
 
     public function get(string $key) {

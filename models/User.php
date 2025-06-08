@@ -78,23 +78,23 @@ class User {
 
     public static function getAll(): array
     {
-        $pdo = Application::$app->db->pdo;
+        try {
+            $pdo = Application::$app->db->pdo;
 
-        $stmt = $pdo->query("SELECT * FROM users");
-        $raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Test simple query
+            $test = $pdo->query("SELECT 1 AS test")->fetch();
+            error_log("Database test query: " . print_r($test, true));
 
-        $users = [];
-        foreach ($raw as $row) {
-            $u = new self();
-            $u->id = (int)$row['id'];
-            $u->name = $row['name'] ?? $row['username'] ?? '';
-            $u->email = $row['email'] ?? '';
-            $u->role = $row['role'] ?? 'student';
-            $u->created_at = $row['created_at'] ?? '';
-            $users[] = $u;
+            // Get actual users
+            $stmt = $pdo->query("SELECT * FROM users LIMIT 5");
+            $result = $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
+
+            error_log("First user: " . print_r($result[0] ?? null, true));
+            return $result;
+        } catch (PDOException $e) {
+            error_log("Database error: " . $e->getMessage());
+            return [];
         }
-
-        return $users;
     }
 
 
