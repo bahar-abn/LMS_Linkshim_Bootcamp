@@ -1,42 +1,26 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) session_start();
-if (!defined('BASE_URL')) define('BASE_URL', '/lms-php-mvc/public');
-?>
-
+<?php if (session_status() === PHP_SESSION_NONE) session_start(); ?>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>My Courses</title>
+    <title>My Enrolled Courses</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-6">
-<div class="max-w-5xl mx-auto">
-    <h1 class="text-3xl font-bold text-blue-800 mb-6">My Courses</h1>
+<div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-4">My Enrolled Courses</h1>
 
     <?php if (!empty($courses)): ?>
-        <div class="space-y-4">
+        <ul class="space-y-4">
             <?php foreach ($courses as $course): ?>
-                <?php if (!isset($course->id)) continue; // skip invalid entries ?>
-                <div class="p-4 bg-white rounded-lg shadow hover:shadow-md transition">
-                    <h2 class="text-xl font-semibold text-blue-700"><?= htmlspecialchars($course->title) ?></h2>
-                    <p class="text-gray-700 mt-1"><?= htmlspecialchars($course->description) ?></p>
-                    <p class="text-sm text-gray-600 mt-2">
-                        <strong>Status:</strong> <span class="font-medium"><?= htmlspecialchars($course->status) ?></span>
-                    </p>
-                    <div class="mt-3">
-                        <a href="<?= BASE_URL ?>/courses/<?= urlencode($course->id) ?>" class="text-blue-600 hover:underline text-sm">
-                            View Details →
-                        </a>
-                        <a href="<?= BASE_URL ?>/courses/<?= urlencode($course->id) ?>/edit" class="ml-4 text-yellow-600 hover:underline text-sm">
-                            Edit →
-                        </a>
-                    </div>
-                </div>
+                <li class="p-4 border rounded bg-gray-50">
+                    <h2 class="text-xl font-semibold"><?= htmlspecialchars($course['title']) ?></h2>
+                    <p class="text-gray-700"><?= htmlspecialchars($course['description']) ?></p>
+                    <a href="<?= BASE_URL ?>/courses/<?= $course['id'] ?>" class="text-blue-600 hover:underline">View Details</a>
+                </li>
             <?php endforeach; ?>
-        </div>
+        </ul>
     <?php else: ?>
-        <p class="text-gray-600">You haven't created any courses yet.</p>
+        <p class="text-gray-600">You have not enrolled in any courses yet.</p>
     <?php endif; ?>
 </div>
 </body>

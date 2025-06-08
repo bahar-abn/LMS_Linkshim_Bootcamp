@@ -9,7 +9,6 @@ use PDO;
 use PDOException;
 
 class AuthController {
-    // 👇 New method to handle root `/` route
     public function home(): void {
         if (isset($_SESSION['user'])) {
             Application::$app->response->redirect(BASE_URL . '/login');
@@ -17,7 +16,6 @@ class AuthController {
             Application::$app->response->redirect(BASE_URL . '/login');
         }
     }
-
 
     public function login(Request $request): void {
         require_once Application::$ROOT_DIR . '/views/auth/login.php';
@@ -33,47 +31,64 @@ class AuthController {
     public function loginPost(Request $request)
     {
         $data = $request->getBody();
+        error_log('Login attempt with data: ' . print_r($data, true));
+
         $email = $data['email'] ?? '';
         $password = $data['password'] ?? '';
 
-        if (!$email || !$password) {
+        if (empty($email) || empty($password)) {
+            error_log('Empty email or password');
             $_SESSION['login_error'] = 'Email and password are required.';
             Application::$app->response->redirect(BASE_URL . '/login');
             return;
         }
 
-        // Fetch user
-        $stmt = Application::$app->db->pdo->prepare("SELECT * FROM users WHERE email = :email");
-        $stmt->execute([':email' => $email]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        $user = User::findByEmail($email);
+        error_log('User found: ' . print_r($user, true));
 
-        if (!$user || !password_verify($password, $user['password'])) {
+        if (!$user || !password_verify($password, $user->password)) {
+            error_log('Invalid login');
             $_SESSION['login_error'] = 'Invalid email or password.';
             Application::$app->response->redirect(BASE_URL . '/login');
             return;
         }
 
-        // Store user in session
-        $_SESSION['user'] = [
-            'id' => $user['id'],
-            'name' => $user['name'],
-            'email' => $user['email'],
-            'role' => $user['role'],
-        ];
-        $_SESSION['user_role'] = $user['role']; // Set user role for dashboard redirection
-        Application::$app->user = new \models\User($user);
+        Application::$app->user = $user;
 
-        // Redirect based on role
-        Application::$app->response->redirect(BASE_URL . '/dashboard');
+        $_SESSION['user'] = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+        ];
+        $_SESSION['user_role'] = $user->role; // ✅ Add this line to fix the redirection
+
+        $_SESSION['login_success'] = 'Welcome back, ' . htmlspecialchars($user->name) . '!';
+
+        switch ($user->role) {
+            case 'admin':
+                Application::$app->response->redirect(BASE_URL . '/admin-dashboard');
+                break;
+            case 'instructor':
+                Application::$app->response->redirect(BASE_URL . '/instructor-dashboard');
+                break;
+            case 'student':
+                Application::$app->response->redirect(BASE_URL . '/dashboard');
+                break;
+            default:
+                $_SESSION['login_warning'] = 'Your account has an unrecognized role';
+                Application::$app->response->redirect(BASE_URL . '/dashboard');
+        }
+
+        exit;
     }
 
     public function registerPost(Request $request): void {
         $user = new User();
         $data = $request->getBody();
 
-        // Ensure 'role' is set from form
+        $data['role'] = 'student';
         $user->loadData($data);
-        $user->role = $data['role'] ?? 'student'; // Default to student if not provided
 
         if (!$user->validate()) {
             $_SESSION['register_error'] = 'Invalid registration data';
@@ -82,11 +97,36 @@ class AuthController {
         }
 
         if ($user->save()) {
-            $_SESSION['user_email'] = $user->email;
-            $_SESSION['user_name'] = $user->name;
-            $_SESSION['user_role'] = $user->role;
+            $newUser = User::findByEmail($user->email);
 
-            Application::$app->response->redirect(BASE_URL . '/dashboard');
+            if ($newUser) {
+                $_SESSION['user'] = [
+                    'id' => $newUser->id,
+                    'name' => $newUser->name,
+                    'email' => $newUser->email,
+                    'role' => $newUser->role,
+                ];
+                $_SESSION['user_role'] = $newUser->role; // ✅ Add this line to fix the redirection
+
+                Application::$app->user = $newUser;
+
+                switch ($newUser->role) {
+                    case 'admin':
+                        Application::$app->response->redirect(BASE_URL . '/admin-dashboard');
+                        break;
+                    case 'instructor':
+                        Application::$app->response->redirect(BASE_URL . '/instructor-dashboard');
+                        break;
+                    case 'student':
+                        Application::$app->response->redirect(BASE_URL . '/dashboard');
+                        break;
+                    default:
+                        Application::$app->response->redirect(BASE_URL . '/dashboard');
+                }
+            } else {
+                $_SESSION['register_error'] = 'Registration succeeded but failed to log in. Please try logging in.';
+                Application::$app->response->redirect(BASE_URL . '/login');
+            }
         } else {
             $_SESSION['register_error'] = 'Registration failed. Email may already exist.';
             Application::$app->response->redirect(BASE_URL . '/register');
@@ -137,5 +177,11 @@ class AuthController {
         } catch (PDOException $e) {
             echo "ERROR: " . $e->getMessage();
         }
+    }
+
+    public function redirect($url) {
+        error_log("Attempting redirect to: " . $url);
+        header("Location: $url");
+        exit;
     }
 }

@@ -45,8 +45,30 @@ class Router
             // Inject route params into Request object
             $this->request->setRouteParams($this->routeParams);
 
-            // Call controller method with Request only
-            return call_user_func([$controller, $methodName], $this->request);
+            // Get method parameters using reflection
+            $reflection = new \ReflectionMethod($controller, $methodName);
+            $parameters = $reflection->getParameters();
+            $args = [];
+
+            foreach ($parameters as $param) {
+                $paramName = $param->getName();
+                $paramType = $param->getType();
+
+                // If parameter is Request object
+                if ($paramType && $paramType->getName() === Request::class) {
+                    $args[] = $this->request;
+                }
+                // If parameter is a route parameter
+                elseif (array_key_exists($paramName, $this->routeParams)) {
+                    $args[] = $this->routeParams[$paramName];
+                }
+                // Otherwise try to get from request body
+                else {
+                    $args[] = $this->request->getBody()[$paramName] ?? null;
+                }
+            }
+
+            return call_user_func_array([$controller, $methodName], $args);
         }
 
         return call_user_func($callback, $this->request);

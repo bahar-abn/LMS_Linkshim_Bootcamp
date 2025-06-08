@@ -13,8 +13,15 @@ class Response {
     /**
      * Redirects to a different URL
      */
-    public function redirect(string $url): void {
-        header("Location: $url");
+    public function redirect(string $url): void
+    {
+        if (!headers_sent()) {
+            header("Location: $url");
+            exit;
+        }
+
+        // Fallback for when headers are sent
+        echo "<script>window.location.href='$url';</script>";
         exit;
     }
 }

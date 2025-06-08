@@ -6,11 +6,6 @@ use controllers\AuthController;
 use controllers\CourseController;
 use controllers\AdminController;
 use controllers\ReviewController;
-use models\Course;
-use models\User;
-
-// Debug current request
-error_log("Request: " . $_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI']);
 
 // ----------------- Auth Routes -----------------
 $app->router->get('/', [AuthController::class, 'login']);
@@ -21,15 +16,24 @@ $app->router->get('/register', [AuthController::class, 'register']);
 $app->router->post('/register', [AuthController::class, 'registerPost']);
 
 $app->router->get('/logout', [AuthController::class, 'logout']);
-$app->router->get('/dashboard', [AdminController::class, 'dashboard']); // global dashboard router
 
-// ----------------- Dashboard Routes (Role-Based) -----------------
+// ----------------- Dashboard Routes -----------------
+$app->router->get('/dashboard', [AuthController::class, 'dashboard']);
 $app->router->get('/admin-dashboard', [AdminController::class, 'dashboard']);
-$app->router->get('/instructor-dashboard', [AdminController::class, 'instructorDashboard']);
-$app->router->get('/student-dashboard', [AdminController::class, 'studentDashboard']);
-
-// ✅ NEW: Route using dashboard() directly
+$app->router->get('/instructor-dashboard', [CourseController::class, 'instructorDashboard']);
+// ----------------- Admin Routes -----------------
 $app->router->get('/admin/dashboard', [AdminController::class, 'dashboard']);
+$app->router->get('/admin/manage-users', [AdminController::class, 'manageUsers']);
+$app->router->get('/admin/manage-courses', [AdminController::class, 'manageCourses']);
+$app->router->get('/admin/manage-reviews', [AdminController::class, 'manageReviews']);
+
+// Course Approval Routes
+$app->router->get('/admin/approve-course/{id}', [AdminController::class, 'approveCourse']);
+$app->router->get('/admin/reject-course/{id}', [AdminController::class, 'rejectCourse']);
+
+// Delete Routes
+$app->router->get('/admin/delete-user/{id}', [AdminController::class, 'deleteUser']);
+$app->router->get('/admin/delete-review/{id}', [AdminController::class, 'deleteReview']);
 
 // ----------------- Course Routes -----------------
 $app->router->get('/courses', [CourseController::class, 'index']);
@@ -41,30 +45,8 @@ $app->router->get('/courses/{id}/edit', [CourseController::class, 'edit']);
 $app->router->post('/courses/{id}/update', [CourseController::class, 'update']);
 
 // ----------------- Instructor Routes -----------------
-$app->router->get('/my-courses', [CourseController::class, 'myCourses']);
-$app->router->get('/my-course-reviews', [ReviewController::class, 'myCourseReviews']);
-
-// ----------------- Admin Routes -----------------
-$app->router->get('/manage-users', [AdminController::class, 'manageUsers']);
-$app->router->get('/manage-courses', [AdminController::class, 'manageCourses']);
-$app->router->get('/manage-reviews', [AdminController::class, 'manageReviews']);
-$app->router->get('/courses/{id}/approve', [AdminController::class, 'approveCourse']);
-$app->router->get('/courses/{id}/reject', [AdminController::class, 'rejectCourse']);
-$app->router->get('/users/{id}/delete', [AdminController::class, 'deleteUser']);
-$app->router->get('/reviews/{id}/delete', [AdminController::class, 'deleteReview']);
-
-// In routes.php
-$app->router->get('/test-data', function() {
-    $users = User::getAll();
-    echo "<pre>Users: " . print_r($users, true) . "</pre>";
-
-    $courses = Course::getAll();
-    echo "<pre>Courses: " . print_r($courses, true) . "</pre>";
-
-    die(); // Stop execution to see output
-});
-
-$app->router->get('/admin/delete-user/{id}', [AdminController::class,'deleteUser']);
-$app->router->post('/admin/delete-user/{id}', [AdminController::class,'deleteUser']);
-
-
+$app->router->get('/instructor/my-courses', [CourseController::class, 'myCourses']);
+$app->router->get('/instructor/my-course-reviews', [ReviewController::class, 'myCourseReviews']);
+$app->router->post('/reviews/add', [ReviewController::class, 'storeReview']);
+$app->router->post('/courses/{id}/enroll', [CourseController::class, 'enroll']);
+$app->router->get('/my-courses', [CourseController::class, 'enrolledCourses']);

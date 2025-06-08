@@ -145,4 +145,27 @@ class Course
         ");
         return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
     }
+    public static function searchAndFilter(string $search = '', string $category = ''): array
+    {
+        $sql = "SELECT * FROM courses WHERE status = 'approved'";
+        $params = [];
+
+        if ($search) {
+            $sql .= " AND title LIKE :search";
+            $params[':search'] = "%$search%";
+        }
+
+        if ($category) {
+            $sql .= " AND category_id = :category_id";
+            $params[':category_id'] = (int)$category;
+        }
+
+        $stmt = Application::$app->db->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(\PDO::FETCH_CLASS, self::class); // Returns array of Course objects
+    }
+
+
+
 }

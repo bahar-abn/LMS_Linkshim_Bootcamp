@@ -25,15 +25,15 @@ $userName = $_SESSION['user_name'] ?? 'Student';
 
     <ul class="space-y-3">
         <li>
-            <a href="<?= BASE_URL ?>/courses"
-               class="block bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded text-blue-800">
+            <a href="<?= BASE_URL ?>/my-courses"
+               class="block bg-green-100 hover:bg-green-200 px-4 py-2 rounded text-green-800">
                 📘 My Courses
             </a>
         </li>
         <li>
             <a href="<?= BASE_URL ?>/courses"
                class="block bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded text-blue-800">
-                🔍 Browse Courses
+                🔍 Browse Approved Courses
             </a>
         </li>
         <li>

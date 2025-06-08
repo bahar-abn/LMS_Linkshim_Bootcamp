@@ -15,32 +15,80 @@ class AdminController extends MainController
 
     public function __construct()
     {
-        $this->baseUrl = Application::$app->config['BASE_URL'] ?? '/login';
+        // No need to call parent::__construct() since MainController has no constructor
+        $this->baseUrl = $this->determineBaseUrl();
     }
 
-    private function ensureAdmin(): void
+    private function determineBaseUrl(): string
     {
-        $user = Application::$app->user;
-        $role = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
-
-        if ($role !== 'admin') {
-            Application::$app->response->redirect($this->baseUrl . '/login');
-            exit;
+        // First try to get from config
+        if (!empty(Application::$app->config['BASE_URL'])) {
+            return Application::$app->config['BASE_URL'];
         }
+
+        // Fallback to auto-detection
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $path = dirname($_SERVER['SCRIPT_NAME'] ?? '');
+
+        // Special handling for public directory
+        $publicPath = (strpos($path, '/public') !== false) ? '' : '/public';
+
+        return "$protocol://$host$path$publicPath";
     }
 
     private function redirectToDashboardWithMessage(string $type, string $message): void
     {
         Application::$app->session->setFlash($type, $message);
-        Application::$app->response->redirect($this->baseUrl . '/admin-dashboard');
+        $redirectUrl = rtrim($this->baseUrl, '/') . '/dashboard';
+        Application::$app->response->redirect($redirectUrl);
         exit;
     }
 
+    // ... rest of your existing methods ...
+
+
+    private function ensureAdmin(): void
+    {
+        // First check session
+        if (empty($_SESSION['user'])) {
+            error_log('No user session - redirecting to login');
+            Application::$app->response->redirect($this->baseUrl . '/login');
+            exit;
+        }
+
+        // Then check application user if available
+        if (!empty(Application::$app->user)) {
+            $role = Application::$app->user->role ?? null;
+        } else {
+            // Fallback to session data
+            $role = $_SESSION['user']['role'] ?? null;
+        }
+
+        if ($role !== 'admin') {
+            error_log('Unauthorized access attempt by role: ' . ($role ?? 'none'));
+            Application::$app->session->setFlash('error', 'Admin privileges required');
+
+            // Redirect to appropriate dashboard based on role
+            $redirect = $this->baseUrl;
+            if ($role === 'instructor') {
+                $redirect .= '/instructor-dashboard';
+            } elseif ($role === 'student') {
+                $redirect .= '/dashboard';
+            } else {
+                $redirect .= '/login';
+            }
+
+            Application::$app->response->redirect($redirect);
+            exit;
+        }
+    }
+
+
     public function dashboard(): void
     {
-        // $this->ensureAdmin();
 
-        // Get data
+//// Get data
         $users = User::getAll() ?? [];
         $courses = Course::getAll() ?? [];
         $reviews = Review::getAll() ?? [];
@@ -100,21 +148,41 @@ class AdminController extends MainController
         $this->redirectToDashboardWithMessage('warning', 'Course rejected');
     }
 
-    public function deleteUser(Request $request, $id): void
+    public function deleteUser(Request $request): void
     {
         $this->ensureAdmin();
 
-        $user = User::find($id);
-        if (!$user) {
-            $this->redirectToDashboardWithMessage('error', 'User not found');
+        // Get ID from route parameters
+        $id = $request->getRouteParam('id') ?? $request->getBody()['id'] ?? null;
+
+        if (!$id) {
+            $this->redirectToDashboardWithMessage('error', 'User ID is required');
         }
 
-        if ($user->role === 'admin') {
-            $this->redirectToDashboardWithMessage('error', 'Cannot delete admin user');
-        }
+        try {
+            $user = User::find($id);
 
-        $user->delete();
-        $this->redirectToDashboardWithMessage('success', 'User deleted successfully');
+            if (!$user) {
+                $this->redirectToDashboardWithMessage('error', 'User not found');
+            }
+
+            if ($user->role === 'admin') {
+                $this->redirectToDashboardWithMessage('error', 'Cannot delete admin user');
+            }
+
+            // Delete from database
+            $stmt = Application::$app->db->pdo->prepare("DELETE FROM users WHERE id = :id");
+            $success = $stmt->execute([':id' => $id]);
+
+            if ($success) {
+                $this->redirectToDashboardWithMessage('success', 'User deleted successfully');
+            } else {
+                $this->redirectToDashboardWithMessage('error', 'Failed to delete user');
+            }
+        } catch (\PDOException $e) {
+            error_log("Delete user error: " . $e->getMessage());
+            $this->redirectToDashboardWithMessage('error', 'Database error occurred');
+        }
     }
 
     public function deleteReview(Request $request, $id): void

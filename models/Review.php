@@ -56,4 +56,27 @@ class Review
 
         return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
     }
+    public static function find($id)
+    {
+        $statement = Application::$app->db->prepare("SELECT * FROM reviews WHERE id = :id");
+        $statement->bindValue(':id', $id);
+        $statement->execute();
+
+        return $statement->fetchObject(Review::class) ?: null;
+    }
+    public static function addReview(int $userId, int $courseId, int $rating, string $comment): bool
+    {
+        $stmt = Application::$app->db->pdo->prepare("
+        INSERT INTO reviews (user_id, course_id, rating, comment)
+        VALUES (:user_id, :course_id, :rating, :comment)
+    ");
+
+        return $stmt->execute([
+            ':user_id' => $userId,
+            ':course_id' => $courseId,
+            ':rating' => $rating,
+            ':comment' => $comment,
+        ]);
+    }
+
 }

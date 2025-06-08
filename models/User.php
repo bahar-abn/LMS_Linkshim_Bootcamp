@@ -66,9 +66,13 @@ class User {
         $stmt = Application::$app->db->pdo->prepare("SELECT * FROM users WHERE email = :email");
         $stmt->execute([':email' => $email]);
         $stmt->setFetchMode(PDO::FETCH_CLASS, self::class);
-        return $stmt->fetch() ?: null;
-    }
+        $user = $stmt->fetch() ?: null;
 
+        // Debug the fetched user
+        error_log('User fetched from DB: ' . print_r($user, true));
+
+        return $user;
+    }
     public static function findById(int $id): ?self {
         $stmt = Application::$app->db->pdo->prepare("SELECT * FROM users WHERE id = :id");
         $stmt->execute([':id' => $id]);
@@ -78,26 +82,24 @@ class User {
 
     public static function getAll(): array
     {
-        try {
-            $pdo = Application::$app->db->pdo;
+        $pdo = Application::$app->db->pdo;
 
-            // Test simple query
-            $test = $pdo->query("SELECT 1 AS test")->fetch();
-            error_log("Database test query: " . print_r($test, true));
+        $stmt = $pdo->query("SELECT * FROM users");
+        $raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Get actual users
-            $stmt = $pdo->query("SELECT * FROM users LIMIT 5");
-            $result = $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
-
-            error_log("First user: " . print_r($result[0] ?? null, true));
-            return $result;
-        } catch (PDOException $e) {
-            error_log("Database error: " . $e->getMessage());
-            return [];
+        $users = [];
+        foreach ($raw as $row) {
+            $u = new self();
+            $u->id = (int)$row['id'];
+            $u->name = $row['name'] ?? $row['username'] ?? '';
+            $u->email = $row['email'] ?? '';
+            $u->role = $row['role'] ?? 'student';
+            $u->created_at = $row['created_at'] ?? '';
+            $users[] = $u;
         }
+
+        return $users;
     }
-
-
     public static function count(): int {
         $stmt = Application::$app->db->pdo->prepare("SELECT COUNT(*) FROM users");
         $stmt->execute();
@@ -110,5 +112,32 @@ class User {
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_CLASS, self::class);
+    }
+    public static function find($id)
+    {
+        $stmt = Application::$app->db->pdo->prepare("SELECT * FROM users WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$userData) {
+            return null;
+        }
+
+        return new self($userData);
+    }
+    public function delete()
+    {
+        if (empty($this->id)) {
+            return false;
+        }
+
+        $stmt = Application::$app->db->pdo->prepare("DELETE FROM users WHERE id = :id");
+        return $stmt->execute([':id' => $this->id]);
+    }
+    // In your core/Response class or equivalent
+    public function redirect($url) {
+        error_log("Attempting redirect to: " . $url);
+        header("Location: $url");
+        exit; // Make sure to exit after redirect
     }
 }
