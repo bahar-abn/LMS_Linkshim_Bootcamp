@@ -4,11 +4,11 @@ namespace controllers;
 
 use core\Application;
 use core\Request;
-use core\Response;
 use models\Course;
 use models\Category;
 use models\Review;
 use core\Session;
+use models\Enrollment;
 
 class CourseController
 {
@@ -19,13 +19,11 @@ class CourseController
         $search = $_GET['search'] ?? '';
         $category = $_GET['category'] ?? '';
 
-        $categories = Category::all(); // Must return all category objects
+        $categories = Category::all();
         $courses = Course::searchAndFilter($search, $category);
 
-        // Make variables available to the view
         include Application::$ROOT_DIR . '/views/courses/index.php';
     }
-
 
     public function myCourses()
     {
@@ -65,8 +63,8 @@ class CourseController
             'instructor_id' => $_SESSION['user']['id'],
             'status' => 'pending'
         ]);
-        $course->save();
 
+        $course->save();
         Application::$app->response->redirect(BASE_URL . '/courses/' . urlencode($course->id));
     }
 
@@ -100,18 +98,16 @@ class CourseController
 
         $courseId = (int)$request->getRouteParam('id');
 
-        // Check if course exists
-        $course = \models\Course::findById($courseId);
+        $course = Course::findById($courseId);
         if (!$course) {
             $_SESSION['error'] = 'Course not found.';
             Application::$app->response->redirect(BASE_URL . '/courses');
             return;
         }
 
-        // Prevent duplicate enrollment
         $checkStmt = Application::$app->db->pdo->prepare("
-        SELECT COUNT(*) FROM enrollments WHERE user_id = :user_id AND course_id = :course_id
-    ");
+            SELECT COUNT(*) FROM enrollments WHERE user_id = :user_id AND course_id = :course_id
+        ");
         $checkStmt->execute([
             ':user_id' => $user['id'],
             ':course_id' => $courseId,
@@ -122,11 +118,10 @@ class CourseController
             return;
         }
 
-        // Insert enrollment
         $stmt = Application::$app->db->pdo->prepare("
-        INSERT INTO enrollments (user_id, course_id, enrolled_at)
-        VALUES (:user_id, :course_id, NOW())
-    ");
+            INSERT INTO enrollments (user_id, course_id, enrolled_at)
+            VALUES (:user_id, :course_id, NOW())
+        ");
 
         try {
             $stmt->execute([
@@ -141,6 +136,35 @@ class CourseController
         Application::$app->response->redirect(BASE_URL . "/courses/{$courseId}");
     }
 
+    public function enrolledCourses()
+    {
+        $this->ensureSessionStarted();
+
+        $user = $_SESSION['user'] ?? null;
+        if (!$user || $user['role'] !== 'student') {
+            $_SESSION['error'] = 'Unauthorized';
+            Application::$app->response->redirect(BASE_URL . '/login');
+            return;
+        }
+
+        $courses = Enrollment::findByUser($user['id']);
+        require_once Application::$ROOT_DIR . '/views/courses/my-courses.php';
+    }
+
+    public function instructorDashboard()
+    {
+        $this->ensureSessionStarted();
+
+        $instructorId = $_SESSION['user']['id'] ?? null;
+
+        if (!$instructorId) {
+            Application::$app->response->redirect(BASE_URL . '/login');
+            return;
+        }
+
+        $courses = Course::findByInstructor($instructorId);
+        include Application::$ROOT_DIR . '/views/courses/instructor_dashboard.php';
+    }
 
     private function ensureSessionStarted(): void
     {
@@ -162,19 +186,4 @@ class CourseController
             exit;
         }
     }
-    public function enrolledCourses()
-    {
-        $this->ensureSessionStarted();
-
-        $user = $_SESSION['user'] ?? null;
-        if (!$user || $user['role'] !== 'student') {
-            $_SESSION['error'] = 'Unauthorized';
-            Application::$app->response->redirect(BASE_URL . '/login');
-            return;
-        }
-
-        $courses = \models\Enrollment::findByUser($user['id']);
-        require_once Application::$ROOT_DIR . '/views/courses/my-courses.php';
-    }
-
 }

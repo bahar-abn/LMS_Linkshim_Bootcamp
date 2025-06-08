@@ -1,6 +1,8 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
 if (!defined('BASE_URL')) define('BASE_URL', '/lms-php-mvc/public');
+
+// Ensure $categories is initialized
 $categories = $categories ?? [];
 ?>
 
@@ -55,8 +57,8 @@ $categories = $categories ?? [];
             >
                 <?php if (!empty($categories)): ?>
                     <?php foreach ($categories as $category): ?>
-                        <option value="<?= $category['id'] ?>">
-                            <?= htmlspecialchars($category['name']) ?>
+                        <option value="<?= $category->id ?>">
+                            <?= htmlspecialchars($category->name) ?>
                         </option>
                     <?php endforeach; ?>
                 <?php else: ?>

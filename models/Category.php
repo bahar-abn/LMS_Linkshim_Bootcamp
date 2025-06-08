@@ -7,14 +7,9 @@ use PDO;
 
 class Category
 {
-    public ?int $id;
-    public string $name;
-
-    public function __construct(array $data = [])
-    {
-        $this->id = isset($data['id']) ? (int)$data['id'] : null;
-        $this->name = $data['name'] ?? '';
-    }
+    public ?int $id = null;
+    public string $name = '';
+    public ?string $created_at = null;
 
     /**
      * Get all categories ordered by name.
@@ -38,9 +33,8 @@ class Category
     {
         $stmt = Application::$app->db->pdo->prepare("SELECT * FROM categories WHERE id = :id");
         $stmt->execute([':id' => $id]);
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $data ? new Category($data) : null;
+        $stmt->setFetchMode(PDO::FETCH_CLASS, self::class);
+        return $stmt->fetch() ?: null;
     }
 
     /**
