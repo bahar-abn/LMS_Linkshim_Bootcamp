@@ -13,9 +13,9 @@
         <ul class="space-y-4">
             <?php foreach ($courses as $course): ?>
                 <li class="p-4 border rounded bg-gray-50">
-                    <h2 class="text-xl font-semibold"><?= htmlspecialchars($course['title']) ?></h2>
-                    <p class="text-gray-700"><?= htmlspecialchars($course['description']) ?></p>
-                    <a href="<?= BASE_URL ?>/courses/<?= $course['id'] ?>" class="text-blue-600 hover:underline">View Details</a>
+                    <h2 class="text-xl font-semibold"><?= htmlspecialchars($course->title ?? '') ?></h2>
+                    <p class="text-gray-700"><?= htmlspecialchars($course->description ?? '') ?></p>
+                    <a href="<?= BASE_URL ?>/courses/<?= $course->id ?? '' ?>" class="text-blue-600 hover:underline">View Details</a>
                 </li>
             <?php endforeach; ?>
         </ul>

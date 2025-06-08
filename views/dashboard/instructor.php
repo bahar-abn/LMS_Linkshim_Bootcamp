@@ -49,7 +49,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'instructor') {
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- My Courses -->
-        <a href="<?= BASE_URL ?>/my-courses"
+        <a href="<?= BASE_URL ?>/instructor/my-courses"
            class="block bg-green-100 hover:bg-green-200 text-green-800 font-medium px-4 py-3 rounded shadow text-center transition">
             📚 View & Manage My Courses
         </a>

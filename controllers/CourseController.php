@@ -163,7 +163,7 @@ class CourseController
         }
 
         $courses = Course::findByInstructor($instructorId);
-        include Application::$ROOT_DIR . '/views/courses/instructor_dashboard.php';
+        include Application::$ROOT_DIR . '/views/dashboard/instructor.php';
     }
 
     private function ensureSessionStarted(): void

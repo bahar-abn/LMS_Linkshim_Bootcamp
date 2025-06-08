@@ -40,7 +40,7 @@ class AdminController extends MainController
     private function redirectToDashboardWithMessage(string $type, string $message): void
     {
         Application::$app->session->setFlash($type, $message);
-        $redirectUrl = rtrim($this->baseUrl, '/') . '/dashboard';
+        $redirectUrl = rtrim($this->baseUrl, '/') . '/admin-dashboard';
         Application::$app->response->redirect($redirectUrl);
         exit;
     }

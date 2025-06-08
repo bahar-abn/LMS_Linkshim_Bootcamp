@@ -46,7 +46,6 @@ $app->router->post('/courses/{id}/update', [CourseController::class, 'update']);
 
 // ----------------- Instructor Routes -----------------
 $app->router->get('/instructor/my-courses', [CourseController::class, 'myCourses']);
-$app->router->get('/instructor/my-course-reviews', [ReviewController::class, 'myCourseReviews']);
-$app->router->post('/reviews/add', [ReviewController::class, 'storeReview']);
+$app->router->get('/my-course-reviews', [ReviewController::class, 'myCourseReviews']);$app->router->post('/reviews/add', [ReviewController::class, 'storeReview']);
 $app->router->post('/courses/{id}/enroll', [CourseController::class, 'enroll']);
 $app->router->get('/my-courses', [CourseController::class, 'enrolledCourses']);
