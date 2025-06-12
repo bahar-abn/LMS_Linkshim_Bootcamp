@@ -161,4 +161,16 @@ class Review
 
         return (int) $stmt->fetchColumn();
     }
+
+    // ----- Add this method -----
+    public function delete(): bool
+    {
+        if (!isset($this->id)) {
+            return false; // id لازم است
+        }
+
+        $stmt = Application::$app->db->pdo->prepare("DELETE FROM reviews WHERE id = :id");
+        $stmt->bindValue(':id', $this->id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
 }
